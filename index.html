@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Train Homework!</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+</head>
+
+<body>
+    <!-- HEADER -->
+    <div class="jumbotron">TESTERRRRRRR</div>
+    <!-- Contatiner/ train display header -->
+    <div class="container panel panel-default">
+        <div class="trainHeader sectionheader active"> Current Train Schedule:
+            <div class="row">
+                <table class="col-md-12 table table-bordered">
+                    <td class="active col-md-3"><strong>Train Name:</strong></td>
+                    <td class="active col-md-3"><strong>Destination:</strong></td>
+                    <td class="active col-md-2"><strong>Frequency(in Mins):</strong></td>
+                    <td class="active col-md-2"><strong>Next Arrival:</strong></td>
+                    <td class="active col-md-2"><strong>Time Remaining:</strong></td>
+                    <tbody id="tableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!-- Form Gathering here -->
+    <div class="container">
+        <div class="col-md-12 panel panel-default formHeader sectionheader" style="padding: 10px;"> Search for Trains here:
+            <hr>
+            <label for="trainNameInput">Train Name:</label>
+            <input class="form-control" id="trainNameInput" type="text">
+            <label for="trainDestInput">Destination:</label>
+            <input class="form-control" id="trainDestInput" type="text">
+            <label for="trainFreqInput">Frequency(Mins):</label>
+            <input class="form-control" id="trainFreqInput" type="text">
+            <label for="trainFirstInput">First Train (Military Time):</label>
+            <input class="form-control" id="trainFirstInput" type="text">
+            <!--  <label for="trainMinsInput" class=" col-md-2">Minutes Away:</label>
+            <input class="form-control" id="trainMinsInput" type="text"> -->
+            <button class="btn btn-default btn-success" id="addTrain" type="submit">Submit</button>
+        </div>
+    </div>
+    </div>
+    <script src="https://code.jquery.com/jquery.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/3.8.0/firebase.js"></script>
+    <script src="moment.min.js"></script>
+    <script>
+    var styleJumbotron = {
+        backgroundColor: "#142c82",
+        fontSize: "40px",
+        color: "white",
+        textAlign: "center",
+        height: "140px"
+    }
+    $('.jumbotron').css(styleJumbotron)
+
+    var config = {
+        apiKey: "AIzaSyANBmZidIoL2wu8u1FpSdb2bXR5gKwY_uM",
+        authDomain: "train-project-85d25.firebaseapp.com",
+        databaseURL: "https://train-project-85d25.firebaseio.com",
+        projectId: "train-project-85d25",
+        storageBucket: "train-project-85d25.appspot.com",
+        messagingSenderId: "923291542233"
+    };
+    firebase.initializeApp(config);
+
+    // VARIABLES
+
+    // Create a variable to reference the database
+
+    var database = firebase.database();
+
+    //all the input variables
+    var trainName;
+    var trainDestination;
+    var trainFrequency;
+    var trainFirst
+
+    //for the first train's value
+    var firstValue
+    var hourValue
+    var minuteValue
+    var thisFirstMoment
+
+    //minutes away vas
+    var minsAwayA;
+    var minsAwayB;
+    var minsAwayC;
+
+
+ 
+    database.ref().on("child_added", function(childSnapshot){
+        // console.log(childSnapshot.val());
+        var grabFB = childSnapshot.val();
+        var diffTime = moment()
+
+        // Going to need to create a time difference. If the frequency is greater than the difference in minutes, run the code below. If not, print the diff in time below 
+
+console.log(grabFB.TrainNextArrivalFB < moment().add(grabFB.TrainFrequencyFB,"minutes").format("HH:mm"))
+console.log(grabFB.TrainNextArrivalFB)
+console.log(moment().add(grabFB.TrainFrequencyFB,"minutes").format("HH:mm"))
+console.log("THIS" + moment().subtract(grabFB.TrainNextArrivalFB, "minutes").format("mm"))
+
+
+
+
+    // First Time
+    var firstTimeConverted = moment(grabFB.TrainNextArrivalFB, "HH:mm");
+    console.log(grabFB.TrainNextArrivalFB);
+
+    // Current Time
+    var currentTime = moment();
+    console.log("CURRENT TIME: " + moment(currentTime).format("HH:mm"));
+
+    var frequencyConverted = moment(grabFB.TrainFrequencyFB, "mm")
+    console.log(frequencyConverted)
+
+    if (grabFB.TrainNextArrivalFB < moment().add(grabFB.TrainFrequencyFB,"minutes").format("HH:mm")){
+
+
+    // take the difference between the times in miutes...
+    diffTime = moment().diff(moment(firstTimeConverted), "minutes");
+    console.log("DIFFERENCE IN TIME: " + diffTime);
+
+    //find the 
+ var tRemainder =   diffTime % grabFB.TrainFrequencyFB;
+    console.log(grabFB.TrainFrequencyFB)
+    console.log(tRemainder);
+
+    // Minute Until Train
+    var tMinutesTillTrain = grabFB.TrainFrequencyFB + tRemainder;
+    console.log("MINUTES TILL TRAIN: " + tMinutesTillTrain);
+
+
+    // Next Train
+    var nextTrain = moment().add(tMinutesTillTrain, "minutes");
+    console.log("ARRIVAL TIME: " + moment(nextTrain).format("HH:mm"));
+
+        childSnapshot.ref.update({
+        TrainNextArrivalFB: moment(nextTrain).format("HH:mm")
+    })
+
+ }
+
+
+ else {
+
+    // Total Minute Value
+    var firstValue = grabFB.TrainNextArrivalFB.split(':');
+    var hourValue = parseInt(firstValue.shift()) * 60;
+    var minuteValue = parseInt(firstValue);
+    var totalValue = hourValue + minuteValue
+
+    
+
+    var nowHourValue = parseInt(moment().format("HH") * 60)
+    var nowMinuteValue = parseInt(moment().format("mm"))
+    var nowTotalValue = nowHourValue + nowMinuteValue
+
+    var firstMoment = moment({hour: hourValue, minute: minuteValue, seconds: 00});
+
+    tMinutesTillTrain = Math.abs(nowTotalValue - totalValue)
+
+    console.log(firstValue, hourValue, minuteValue, totalValue)
+    console.log(nowHourValue, nowMinuteValue, nowTotalValue)
+    console.log(firstMoment, tMinutesTillTrain)
+
+
+ }
+
+
+
+        var tableRow = 
+        $("<tr> <td class='active col-md-3' id='trainNameDisplay'>" 
+        + grabFB.TrainNameFB + "</td><td class='active col-md-3' id='trainDestDisplay'>" 
+        + grabFB.TrainDestinationFB + "</td> <td class='active col-md-2' id='trainFreqDisplay'>" 
+        + grabFB.TrainFrequencyFB + "</td><td class='active col-md-2' id='trainNextDisplay'>" 
+        + grabFB.TrainNextArrivalFB + "</td><td class='active col-md-2' id='trainMinsDisplay'>" 
+        + tMinutesTillTrain + "</td></tr>");
+    $("#tableBody").append(tableRow);
+
+    })
+
+
+        $('#addTrain').on("click", function() {
+        event.preventDefault();
+        trainName = $('#trainNameInput').val()
+        trainDestination = $('#trainDestInput').val()
+        trainFrequency = parseInt($('#trainFreqInput').val())
+        firstMoment = $('#trainFirstInput').val()
+
+
+            database.ref().push({
+            TrainNameFB: trainName,
+            TrainDestinationFB: trainDestination,
+            TrainFrequencyFB: trainFrequency,
+            TrainNextArrivalFB: firstMoment,
+            // TrainMinutesAwayFB: tMinutesTillTrain,
+            // TrainNextNextArrivalFB: moment(trainFirstArrival).add("trainFrequency", "minutes")
+        });
+     });
+
+
+    </script>
+</body>
+
+</html>
+
+
+
+
+<!--    
+
+        Just for the hell of it, Im leaving this crazy idea here that I spent hours on, tweaking and finetuning, only for it to not work..
+
+        var grabFB = childSnapshot.val();
+        var firstArrival = grabFB.TrainNextArrivalFB //first arrival
+
+        var firstValue = firstArrival.split(':');
+        var hourValue = parseInt(firstValue.shift());
+        var minuteValue = parseInt(firstValue);
+        var firstMoment = moment({hour: hourValue, minute: minuteValue, seconds: 00});
+        var hourMinuteMoment = moment(firstMoment).format("HH:mm a");
+
+        var currentHour = moment().hour()
+        var currentMinute = moment().minute()
+
+        console.log(currentHour)
+        console.log(currentMinute)
+        console.log(Math.abs(currentHour - hourValue) * 60)
+        console.log(Math.abs(currentMinute - minuteValue))
+
+        var differenceInTime = Math.abs(currentHour - hourValue) *60 + Math.abs(currentMinute - minuteValue)
+
+        console.log(differenceInTime)
+
+
+
+         -->
